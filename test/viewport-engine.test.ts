@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	CELL_HEIGHT,
 	CELL_WIDTH,
@@ -40,6 +40,13 @@ type PendingBitmap = {
 
 let pending: PendingBitmap[] = []
 
+/** Let queued microtasks and timers run, such as the first render turn. */
+async function nextTask(): Promise<void> {
+	await new Promise((resolve) => {
+		setTimeout(resolve, 0)
+	})
+}
+
 /** Resolve the oldest pending bitmap and let its continuation run. */
 async function settleNextBitmap(): Promise<FakeBitmap> {
 	const next = pending.shift()
@@ -48,9 +55,7 @@ async function settleNextBitmap(): Promise<FakeBitmap> {
 	}
 
 	next.resolve()
-	await new Promise((resolve) => {
-		setTimeout(resolve, 0)
-	})
+	await nextTask()
 	return next.bitmap
 }
 
@@ -116,6 +121,12 @@ beforeEach(() => {
 	)
 })
 
+// A settled bitmap queues the engine's next turn on a timer. Let it run now, so
+// it can't add a bitmap to the next test's pending list
+afterEach(async () => {
+	await nextTask()
+})
+
 describe('initial layout', () => {
 	it('centers the origin cell and selects it', () => {
 		const { engine, selections } = createEngine()
@@ -175,6 +186,7 @@ describe('centerOn', () => {
 
 	it('warps to a distant coordinate and discards in-flight bitmaps', async () => {
 		const { engine } = createEngine()
+		await nextTask()
 		expect(pending).toHaveLength(1)
 
 		engine.centerOn(X_MAX / 2n, Y_MAX / 2n)
@@ -197,6 +209,7 @@ describe('centerOn', () => {
 describe('mode changes', () => {
 	it('rebuilds panes for a new layout and discards in-flight bitmaps', async () => {
 		const { engine } = createEngine()
+		await nextTask()
 		engine.setMappingMode('spiral')
 		expect(engine.mappingMode).toBe('spiral')
 		expect(engine.selectedX).toBe(0n)
@@ -211,6 +224,7 @@ describe('mode changes', () => {
 
 	it('snaps the selection to the new delta grid and keeps a stale layer', async () => {
 		const { engine } = createEngine()
+		await nextTask()
 		const rendered = await settleNextBitmap()
 		engine.centerOn(7n, 11n)
 
@@ -289,10 +303,13 @@ describe('resize', () => {
 
 	it('releases bitmaps that resolve after their pane was pruned', async () => {
 		const { engine } = createEngine()
-		const [first] = engine.panes
 		engine.centerOn(X_MAX / 2n, Y_MAX / 2n)
+		await nextTask()
+		const rendering = paneContaining(engine, engine.selectedX, engine.selectedY)!
+		expect(pending).toHaveLength(1)
+
 		engine.movePanes(-5 * PANE_WIDTH, 0)
-		expect(engine.panes.includes(first!)).toBe(false)
+		expect(engine.panes.includes(rendering)).toBe(false)
 
 		const bitmap = await settleNextBitmap()
 		expect(bitmap.closed).toBe(true)
@@ -300,16 +317,20 @@ describe('resize', () => {
 })
 
 describe('detail scale', () => {
-	it('renders full-size bitmaps by default', () => {
+	it('renders full-size bitmaps by default', async () => {
 		createEngine()
-		expect(pending[0]?.options).toBeUndefined()
+		await nextTask()
+		expect(pending).not.toHaveLength(0)
+		expect(pending[0]!.options).toBeUndefined()
 	})
 
 	it('shrinks new bitmaps and keeps the old panes as a stale layer', async () => {
 		const { engine } = createEngine()
+		await nextTask()
 		const fullSize = await settleNextBitmap()
 
 		engine.setDetailScale(0.25)
+		await nextTask()
 		expect(
 			engine.stalePanes?.panes.some((pane) => (pane.imageBitmap as unknown) === fullSize),
 		).toBe(true)
@@ -323,7 +344,7 @@ describe('detail scale', () => {
 		})
 	})
 
-	it('renders several panes per turn when given a time budget', () => {
+	it('renders several panes per turn when given a time budget', async () => {
 		const engine = new ViewportEngine({
 			onNeedRedraw() {
 				// Nothing to draw in tests
@@ -336,17 +357,19 @@ describe('detail scale', () => {
 			viewportWidth: 800,
 		})
 		engine.init()
+		await nextTask()
 		expect(pending.length).toBeGreaterThan(1)
 	})
 })
 
 describe('coarse detail', () => {
-	it('renders cells as their average brightness at an eighth scale or below', () => {
+	it('renders cells as their average brightness at an eighth scale or below', async () => {
 		const { engine } = createEngine()
 		vi.mocked(renderPane).mockClear()
 		vi.mocked(renderPaneCoarse).mockClear()
 
 		engine.setDetailScale(0.125)
+		await nextTask()
 		expect(renderPaneCoarse).toHaveBeenCalled()
 		expect(renderPane).not.toHaveBeenCalled()
 		const size = vi.mocked(renderPaneCoarse).mock.calls.at(-1)?.[5]
@@ -372,5 +395,25 @@ describe('coarse detail', () => {
 				expect(positions.has(`${x},${y}`)).toBe(true)
 			}
 		}
+	})
+})
+
+describe('render order', () => {
+	it.each([
+		['a warp', (engine: ViewportEngine) => engine.centerOn(X_MAX / 2n, Y_MAX / 2n)],
+		['a delta change', (engine: ViewportEngine) => engine.setDelta(4n)],
+		['a layout change', (engine: ViewportEngine) => engine.setMappingMode('spiral')],
+	])('renders the pane under the reticle first after %s', async (_, rebuild) => {
+		const { engine } = createEngine()
+		vi.mocked(renderPane).mockClear()
+
+		rebuild(engine)
+		await nextTask()
+
+		const underReticle = paneContaining(engine, engine.selectedX, engine.selectedY)!
+		expect(vi.mocked(renderPane).mock.calls[0]?.slice(0, 2)).toEqual([
+			underReticle.xPos,
+			underReticle.yPos,
+		])
 	})
 })

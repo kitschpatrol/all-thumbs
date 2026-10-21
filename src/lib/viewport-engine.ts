@@ -658,9 +658,8 @@ export class ViewportEngine {
 
 		this.sortRenderQueue()
 
-		// Kick off rendering if engine was idle
 		if (wasIdle && this.renderQueue.length > 0) {
-			this.processRenderQueue()
+			this.startRendering()
 		}
 	}
 
@@ -800,5 +799,22 @@ export class ViewportEngine {
 		}
 
 		this.renderQueue.sort((a, b) => a.distanceFromCenter - b.distanceFromCenter)
+	}
+
+	/**
+	 * Start the first render turn once the caller's synchronous changes are done.
+	 * Panes are created before the move that centers them (a warp seeds the grid
+	 * at the top-left, a resize shifts afterwards), so rendering straight away
+	 * would spend the first turn on panes that end up far from the reticle.
+	 */
+	private startRendering(): void {
+		this.isRendering = true
+		const gen = this.renderGeneration
+		queueMicrotask(() => {
+			// A rebuild in between starts its own turn
+			if (gen === this.renderGeneration) {
+				this.processRenderQueue()
+			}
+		})
 	}
 }
