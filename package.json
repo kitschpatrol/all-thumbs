@@ -1,0 +1,58 @@
+{
+	"name": "all-thumbs",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Every image, ever.",
+	"keywords": [
+		"latent-space",
+		"bigint",
+		"combinatorics",
+		"generative",
+		"visualization"
+	],
+	"homepage": "https://frontiernerds.com/all-thumbs",
+	"bugs": "https://github.com/kitschpatrol/all-thumbs/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kitschpatrol/all-thumbs.git"
+	},
+	"license": "MIT",
+	"author": {
+		"name": "Eric Mika",
+		"email": "eric@ericmika.com",
+		"url": "https://ericmika.com"
+	},
+	"sideEffects": false,
+	"type": "module",
+	"scripts": {
+		"build": "vite build && node ./scripts/version.ts > ./dist/version.json && node ./scripts/prepare-assets.ts",
+		"clean-deep": "git rm -f pnpm-lock.yaml && git clean -fdX",
+		"dev": "poptab && vite",
+		"fix": "ksc fix",
+		"lint": "ksc lint && svelte-check --tsconfig ./tsconfig.build.json",
+		"prepare": "skills experimental_sync -y -f",
+		"preview": "pnpm build && poptab && vite preview",
+		"release": "bumpp --commit 'Release: %s' && pnpm build && wrangler deploy",
+		"test": "vitest run"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.64.0",
+		"@kitschpatrol/shared-config": "^8.13.1",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@types/node": "~24.13.6",
+		"bumpp": "^12.3.0",
+		"poptab": "^1.2.2",
+		"skills": "^1.7.2",
+		"svelte": "^5.57.2",
+		"svelte-check": "^4.7.6",
+		"svelte-tweakpane-ui": "^1.7.0-preview.4",
+		"typescript": "~6.0.3",
+		"vite": "^8.3.4",
+		"vitest": "^5.0.4",
+		"wrangler": "^4.151.0"
+	},
+	"packageManager": "pnpm@12.14.0",
+	"engines": {
+		"node": "^24.16.0 || >=26.3.0"
+	}
+}

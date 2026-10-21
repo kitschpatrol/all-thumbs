@@ -1,0 +1,21 @@
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  workerd: true
+peerDependencyRules:
+  allowedVersions:
+    # Remove once the installed version declares ESLint 10 support.
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/1075
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/pull/1081
+    eslint-plugin-jsx-a11y@6>eslint: ^10.0.0
+publicHoistPattern:
+  - '@kitschpatrol/repo-config'
+  - '@kitschpatrol/typescript-config'
+  - '*cspell*'
+  - '*eslint*'
+  - '*knip*'
+  - '*mdat*'
+  - '*prettier*'
+  - '*remark*'
+  - '*stylelint*'
+  - 'case-police'
