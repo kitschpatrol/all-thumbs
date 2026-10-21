@@ -1,0 +1,3 @@
+/48x48 /all-thumbs 301
+/48x48/ /all-thumbs 301
+/48x48/* /all-thumbs/:splat 301

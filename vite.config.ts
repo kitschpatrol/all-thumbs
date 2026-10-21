@@ -23,6 +23,9 @@ export default defineConfig(({ command, isPreview }) => ({
 				routes: [
 					{ pattern: `frontiernerds.com${base}`, zone_name: 'frontiernerds.com' },
 					{ pattern: `frontiernerds.com${base}/*`, zone_name: 'frontiernerds.com' },
+					// Legacy path, redirected to the base by public/_redirects
+					{ pattern: 'frontiernerds.com/48x48', zone_name: 'frontiernerds.com' },
+					{ pattern: 'frontiernerds.com/48x48/*', zone_name: 'frontiernerds.com' },
 				],
 				workers_dev: false,
 			},
