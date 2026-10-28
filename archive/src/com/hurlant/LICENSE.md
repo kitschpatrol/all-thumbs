@@ -2,7 +2,7 @@ Copyright (c) 2007 Henri Torgemane
 All Rights Reserved.
 
 BigInteger, RSA, Random and ARC4 are derivative works of the jsbn library
-(http://www-cs-students.stanford.edu/~tjw/jsbn/)
+(https://web.archive.org/web/20261015182831/http://www-cs-students.stanford.edu/~tjw/jsbn/)
 The jsbn library is Copyright (c) 2003-2005  Tom Wu (tjw@cs.Stanford.EDU)
 
 MD5, SHA1, and SHA256 are derivative works (https://pajhome.org.uk/crypt/md5/)
