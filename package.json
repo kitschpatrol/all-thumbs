@@ -31,11 +31,12 @@
 		"fix": "ksc fix",
 		"lint": "ksc lint && svelte-check --tsconfig ./tsconfig.build.json",
 		"preview": "pnpm build && poptab && vite preview",
-		"release": "bumpp --commit 'Release: %s' && pnpm build && wrangler deploy",
+		"release": "bumpp --commit 'Release: %s' --all --execute 'chagent' && pnpm build && wrangler deploy",
 		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.66.0",
+		"@kitschpatrol/chagent": "0.4.0",
 		"@kitschpatrol/shared-config": "^8.14.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@types/node": "~24.13.6",
