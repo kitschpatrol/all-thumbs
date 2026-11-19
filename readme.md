@@ -19,7 +19,11 @@
 
 ## Overview
 
-An interface to navigate every possible 48 × 48 pixel black and white image. The software presents a complete, navigable spatial map of all 2^(48×48) images, from solid black at the top-left of the map to solid white at the bottom-right.
+An interface to navigate every possible 48 × 48 pixel black and white image.
+
+The software presents a complete, navigable spatial map of all 2^(48×48) images, from solid black at the top-left of the map to solid white at the bottom-right.
+
+Mostly a wander through noise... a tangible proof of the manifold hypothesis.
 
 By default, each image is split into two 1152-bit halves: the top half encodes the map's X coordinate and the bottom half encodes the Y coordinate. Ways to navigate:
 
