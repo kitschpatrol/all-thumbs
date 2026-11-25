@@ -13,6 +13,8 @@ peerDependencyRules:
 permissions:
   '@kitschpatrol/shared-config':
     skills: true
+  modern-web-guidance:
+    skills: true
 publicHoistPattern:
   - '@kitschpatrol/repo-config'
   - '@kitschpatrol/typescript-config'
